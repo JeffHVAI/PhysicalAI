@@ -1,0 +1,55 @@
+name: "Patent Disclosure Linter"
+description: "Automates screening and feedback for markdown-based patent disclosures using LLMs."
+author: "Hoververse AI"
+branding:
+  icon: "check-square"
+  color: "blue"
+
+inputs:
+  github-token:
+    description: "GitHub access token to comment on Pull Requests (defaults to secrets.GITHUB_TOKEN)"
+    required: false
+    default: "${{ github.token }}"
+  disclosures_dir:
+    description: "Relative directory containing disclosures in the repo"
+    required: false
+    default: "disclosures"
+  llm_provider:
+    description: "AI LLM Provider (gemini or openai)"
+    required: false
+    default: "gemini"
+  llm_api_key:
+    description: "API Key for the AI service"
+    required: true
+  llm_model:
+    description: "Specific LLM model to use"
+    required: false
+  llm_api_endpoint:
+    description: "Custom endpoint URL if using a secure internal AI gateway"
+    required: false
+  disclosure_webhook_url:
+    description: "Slack/Teams webhook URL to trigger on APPROVED disclosures"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+        
+    - name: Install dependencies
+      shell: bash
+      run: npm ci --prefix "${{ github.action_path }}"
+
+    - name: Execute Linter
+      shell: bash
+      env:
+        GITHUB_TOKEN: "${{ inputs.github-token }}"
+        LLM_PROVIDER: "${{ inputs.llm_provider }}"
+        LLM_API_KEY: "${{ inputs.llm_api_key }}"
+        LLM_MODEL: "${{ inputs.llm_model }}"
+        LLM_API_ENDPOINT: "${{ inputs.llm_api_endpoint }}"
+        DISCLOSURE_WEBHOOK_URL: "${{ inputs.disclosure_webhook_url }}"
+      run: node "${{ github.action_path }}/src/index.js" "${{ inputs.disclosures_dir }}"

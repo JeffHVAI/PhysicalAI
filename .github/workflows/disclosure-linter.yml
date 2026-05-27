@@ -1,0 +1,31 @@
+name: Patent Disclosure Linter
+
+on:
+  pull_request:
+    paths:
+      - 'disclosures/**'
+
+jobs:
+  lint-disclosures:
+    name: Check Patent Disclosures
+    runs-on: ubuntu-latest
+    
+    # Required permissions to write comments back to the PR
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Disclosure Linter
+        # Points to the folder containing action.yml in your repo,
+        # or can be replaced with a public action repository pointer (e.g. user/repo@v1)
+        uses: ./patent-disclosure-linter
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          disclosures_dir: "disclosures"
+          llm_provider: "gemini"
+          llm_api_key: ${{ secrets.GEMINI_API_KEY }}
+          disclosure_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
